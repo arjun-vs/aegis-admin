@@ -33,6 +33,8 @@ pip install aegis-admin
 
 ## Quick Start
 
+### Async project (SQLAlchemy async engine)
+
 ```python
 from fastapi import FastAPI
 from sqlalchemy import Column, Integer, String
@@ -63,6 +65,42 @@ aegis = Aegis(
 
 aegis.register(User)
 ```
+
+### Sync project (standard SQLAlchemy engine)
+
+Already have a non-async FastAPI project? Pass a regular `create_engine` — no async driver needed.
+
+```python
+from fastapi import FastAPI
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.orm import DeclarativeBase
+
+from aegis.core.app import Aegis
+from aegis.core.auth import AllowAllAuthBackend
+
+class Base(DeclarativeBase):
+    pass
+
+class User(Base):
+    __tablename__ = "users"
+    id     = Column(Integer, primary_key=True)
+    name   = Column(String(100))
+    email  = Column(String(200))
+
+app    = FastAPI()
+engine = create_engine("sqlite:///./app.db")   # standard sync engine — no aiosqlite needed
+
+aegis = Aegis(
+    app=app,
+    engines={"default": engine},
+    auth_backend=AllowAllAuthBackend(),
+    title="My Admin",
+)
+
+aegis.register(User)
+```
+
+> Aegis detects sync vs async engines automatically — no configuration required.
 
 Visit `http://localhost:8000/admin/ui/` to see the admin panel.
 
