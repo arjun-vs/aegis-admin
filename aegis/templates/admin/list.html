@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }} - {{ table_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-56 bg-white shadow-md p-5 flex flex-col shrink-0">
+        <a href="/admin/ui/" class="text-base font-bold text-gray-800 hover:text-blue-600 mb-6 block">
+            {{ title }}
+        </a>
+        <nav class="flex-1">
+            <a href="/admin/ui/" class="block px-3 py-2 rounded text-sm text-gray-600 hover:bg-gray-100 mb-1">
+                ← Dashboard
+            </a>
+        </nav>
+        <div class="pt-4 border-t mt-auto">
+            <a href="/logout" class="text-sm text-gray-400 hover:text-red-500">Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 p-8 overflow-x-auto">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-5">
+            <h1 class="text-xl font-bold text-gray-800 capitalize">{{ table_name }}</h1>
+            <a href="/admin/ui/{{ table_name }}/create/"
+               class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm font-medium">
+                + Create
+            </a>
+        </div>
+
+        <!-- Search bar -->
+        <form method="get" class="mb-4 flex gap-2 items-center">
+            <input
+                type="text"
+                name="search"
+                value="{{ search or '' }}"
+                placeholder="Search..."
+                class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-64"
+            />
+            <button type="submit"
+                    class="bg-gray-700 text-white px-4 py-2 rounded text-sm hover:bg-gray-800">
+                Search
+            </button>
+            {% if search %}
+            <a href="/admin/ui/{{ table_name }}/" class="text-sm text-gray-500 hover:underline">Clear</a>
+            {% endif %}
+            <span class="ml-auto text-sm text-gray-400">{{ total }} record(s)</span>
+        </form>
+
+        <!-- Bulk delete + table -->
+        <form method="post" action="/admin/ui/{{ table_name }}/bulk-delete/">
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <!-- Bulk action toolbar -->
+                <div class="px-4 py-3 border-b flex items-center gap-3 bg-gray-50">
+                    <button
+                        type="submit"
+                        class="bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700 text-sm font-medium"
+                        onclick="return confirm('Delete all selected records?')"
+                    >
+                        Delete Selected
+                    </button>
+                </div>
+
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 w-8">
+                                <input type="checkbox" id="select-all" class="cursor-pointer" />
+                            </th>
+                            {% for col in columns %}
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                {{ col }}
+                            </th>
+                            {% endfor %}
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for row in results %}
+                        <tr class="hover:bg-blue-50 transition-colors">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" name="pks" value="{{ row[pk_name] }}"
+                                       class="row-checkbox cursor-pointer" />
+                            </td>
+                            {% for col in columns %}
+                            <td class="px-4 py-3 text-sm text-gray-800 max-w-xs truncate">
+                                {{ row[col] }}
+                            </td>
+                            {% endfor %}
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-3 text-sm">
+                                    <a href="/admin/ui/{{ table_name }}/{{ row[pk_name] }}/edit/"
+                                       class="text-blue-600 hover:underline font-medium">Edit</a>
+                                    <a href="/admin/ui/{{ table_name }}/{{ row[pk_name] }}/delete/"
+                                       class="text-red-500 hover:underline font-medium">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if not results %}
+                        <tr>
+                            <td colspan="{{ columns|length + 2 }}"
+                                class="px-4 py-10 text-center text-gray-400 text-sm">
+                                No records found.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+
+    </main>
+</div>
+
+<script>
+    document.getElementById('select-all').addEventListener('change', function () {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+    });
+</script>
+
+</body>
+</html>

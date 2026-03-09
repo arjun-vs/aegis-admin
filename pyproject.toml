@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aegis-admin"
+version = "0.1.0"
+description = "Enterprise Admin Framework for FastAPI — auto-generates admin UI and JSON API for SQLAlchemy models"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+dependencies = [
+    "fastapi>=0.100.0",
+    "sqlalchemy>=2.0",
+]
+keywords = ["fastapi", "admin", "sqlalchemy", "admin-panel", "crud", "async"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.24",
+    "aiosqlite",
+    "uvicorn",
+]
+
+[project.urls]
+Homepage = "https://github.com/arjunpotter17/aegis"
+Repository = "https://github.com/arjunpotter17/aegis"
+Issues = "https://github.com/arjunpotter17/aegis/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aegis*"]
+
+[tool.setuptools.package-data]
+"aegis" = ["templates/**/*.html"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+python_files = ["test_*.py"]

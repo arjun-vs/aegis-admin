@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }} - Edit {{ table_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <h1 class="text-2xl font-bold mb-6">
+        {{ title }} → <a href="/admin/ui/{{ table_name }}/" class="text-blue-600 hover:underline">{{ table_name }}</a> → Edit #{{ pk_value }}
+    </h1>
+
+    <div class="bg-white shadow rounded-lg p-6 max-w-lg">
+        <form method="post" action="/admin/ui/{{ table_name }}/{{ pk_value }}/edit/">
+            {% for field in fields %}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ field.name }}">
+                    {{ field.name }}
+                </label>
+
+                {% if field.widget == "select" and field.name in autocomplete_fields %}
+                <div class="relative" id="ac-container-{{ field.name }}">
+                    <input
+                        type="hidden"
+                        id="{{ field.name }}"
+                        name="{{ field.name }}"
+                        value="{{ values[field.name] if values[field.name] is not none else '' }}"
+                    />
+                    <input
+                        type="text"
+                        id="ac-search-{{ field.name }}"
+                        placeholder="Type to search..."
+                        autocomplete="off"
+                        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 {% if errors[field.name] %}border-red-500{% endif %}"
+                    />
+                    <ul id="ac-list-{{ field.name }}" class="absolute z-10 bg-white border border-gray-200 rounded shadow mt-1 w-full hidden max-h-48 overflow-y-auto"></ul>
+                </div>
+                <script>
+                (function() {
+                    var searchInput = document.getElementById('ac-search-{{ field.name }}');
+                    var hiddenInput = document.getElementById('{{ field.name }}');
+                    var list = document.getElementById('ac-list-{{ field.name }}');
+                    var debounce;
+                    searchInput.addEventListener('input', function() {
+                        clearTimeout(debounce);
+                        debounce = setTimeout(async function() {
+                            var q = searchInput.value.trim();
+                            if (!q) { list.classList.add('hidden'); return; }
+                            var res = await fetch('/admin/api/{{ table_name }}/autocomplete/?field={{ field.name }}&q=' + encodeURIComponent(q));
+                            var data = await res.json();
+                            list.innerHTML = '';
+                            data.results.forEach(function(item) {
+                                var li = document.createElement('li');
+                                li.textContent = item.label;
+                                li.className = 'px-3 py-2 cursor-pointer hover:bg-blue-50';
+                                li.addEventListener('click', function() {
+                                    hiddenInput.value = item.value;
+                                    searchInput.value = item.label;
+                                    list.classList.add('hidden');
+                                });
+                                list.appendChild(li);
+                            });
+                            list.classList.toggle('hidden', data.results.length === 0);
+                        }, 250);
+                    });
+                    document.addEventListener('click', function(e) {
+                        if (!document.getElementById('ac-container-{{ field.name }}').contains(e.target)) {
+                            list.classList.add('hidden');
+                        }
+                    });
+                })();
+                </script>
+
+                {% elif field.widget == "select" %}
+                <select
+                    id="{{ field.name }}"
+                    name="{{ field.name }}"
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 {% if errors[field.name] %}border-red-500{% endif %}"
+                >
+                    <option value="">-- select --</option>
+                    {% for option in fk_options[field.name] %}
+                    <option value="{{ option.value }}"
+                        {% if values[field.name]|string == option.value|string %}selected{% endif %}>
+                        {{ option.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                {% elif field.widget == "number" %}
+                <input
+                    type="number"
+                    id="{{ field.name }}"
+                    name="{{ field.name }}"
+                    value="{{ values[field.name] if values[field.name] is not none else '' }}"
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 {% if errors[field.name] %}border-red-500{% endif %}"
+                />
+
+                {% else %}
+                <input
+                    type="text"
+                    id="{{ field.name }}"
+                    name="{{ field.name }}"
+                    value="{{ values[field.name] if values[field.name] is not none else '' }}"
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 {% if errors[field.name] %}border-red-500{% endif %}"
+                />
+                {% endif %}
+
+                {% if errors[field.name] %}
+                <p class="text-red-500 text-sm mt-1">{{ errors[field.name] }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="flex items-center gap-4 mt-6">
+                <button
+                    type="submit"
+                    class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 font-medium"
+                >
+                    Save
+                </button>
+                <a href="/admin/ui/{{ table_name }}/" class="text-gray-500 hover:underline">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
